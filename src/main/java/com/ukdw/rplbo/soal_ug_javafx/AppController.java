@@ -17,7 +17,9 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AppController {
     @FXML
@@ -121,26 +123,93 @@ public class AppController {
 
     }
 
-    public void update_barchart(String target_col,String val) {
-        // TODO: buat barchart menampilkan seberapa banyak nilai A,A-,B+,...
-        // method ini dapat di gunakan di 2 situasi yaitu nilai berdasarkan nim mahasiswa dan berdasarkan kode matakuliah
-        // ambil data dari attribute nilai_table
-        // tips: target_col merujuk pada nama kolom di datbase sedangkan val adalah value yang di cari dari kolom tersebut misal:
-        // target_col -> nim, val -> 71200001, maka kita mencari 71200001 di kolom nim
+    public void update_barchart(String target_col, String val) {
+        List<Nilai> nilaiList = nilai_table.fetch_nilai_by(target_col, val);
+
+        String[] grades = {"A", "A-", "B+", "B", "B-", "C+", "C", "D", "E"};
+        Map<String, Integer> gradeCount = new LinkedHashMap<>();
+        for (String g : grades) gradeCount.put(g, 0);
+
+        for (Nilai n : nilaiList) {
+            String grade = n.getNilai();
+            if (gradeCount.containsKey(grade)) {
+                gradeCount.put(grade, gradeCount.get(grade) + 1);
+            }
+        }
+
+        barchart.getData().clear();
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Jumlah Nilai");
+        for (Map.Entry<String, Integer> entry : gradeCount.entrySet()) {
+            series.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue()));
+        }
+        barchart.getData().add(series);
     }
 
     public void update_linechart(String kode_mk) {
-        // TODO: buatlah linechart yang menggambarkan nilai mean dari setiap angkatan
-        // angkatan dapat di ambil dengan cara getAngkatan() pada entity Mahasiswa
-        // tips: fetch dulu entity mahasiswa menggunakan fetch_mahasiswa_by_nim() di mhs_tabel menggunakan nim pada nilai_table
+        List<Nilai> nilaiList = nilai_table.fetch_nilai_by("kode_mk", kode_mk);
 
+        Map<String, Double> gradePoint = new LinkedHashMap<>();
+        gradePoint.put("A",  4.0); gradePoint.put("A-", 3.7);
+        gradePoint.put("B+", 3.3); gradePoint.put("B",  3.0);
+        gradePoint.put("B-", 2.7); gradePoint.put("C+", 2.3);
+        gradePoint.put("C",  2.0); gradePoint.put("D",  1.0);
+        gradePoint.put("E",  0.0);
+
+        Map<String, Double>  totalPoin = new LinkedHashMap<>();
+        Map<String, Integer> count     = new LinkedHashMap<>();
+
+        for (Nilai n : nilaiList) {
+            // fetch entity Mahasiswa via nim pada record nilai
+            Mahasiswa mhs = mhs_table.fetch_mahasiswa_by_nim(n.getNIM());
+            if (mhs == null) continue;
+
+            // angkatan diambil dari NIM: "71200001" -> substring(2,4)="20" -> "2020"
+            // "71210005" -> substring(2,4)="21" -> "2021", dst.
+            String angkatan = "20" + mhs.getNIM().substring(2, 4);
+
+            double poin = gradePoint.getOrDefault(n.getNilai(), 0.0);
+            totalPoin.put(angkatan, totalPoin.getOrDefault(angkatan, 0.0) + poin);
+            count.put(angkatan,     count.getOrDefault(angkatan, 0) + 1);
+        }
+
+        linechart.getData().clear();
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Mean Nilai");
+
+        List<String> angkatanSorted = new ArrayList<>(totalPoin.keySet());
+        java.util.Collections.sort(angkatanSorted);
+
+        for (String angkatan : angkatanSorted) {
+            double mean = Math.round((totalPoin.get(angkatan) / count.get(angkatan)) * 100.0) / 100.0;
+            series.getData().add(new XYChart.Data<>(angkatan, mean));
+        }
+        linechart.getData().add(series);
     }
 
     public void update_piechart(String target_col, String val) {
-       // TODO: tampilkan banyaknya nilai A,A-,B+,... dalam bentuk piechart
-        // method ini dapat di gunakan di 2 situasi yaitu nilai berdasarkan nim mahasiswa dan berdasarkan kode matakuliah
-        // ambil data dari attribute nilai_table
-        // tips: target_col merujuk pada nama kolom di datbase sedangkan val adalah value yang di cari dari kolom tersebut misal:
-        // target_col -> nim, val -> 71200001, maka kita mencari 71200001 di kolom nim
+        List<Nilai> nilaiList = nilai_table.fetch_nilai_by(target_col, val);
+
+        String[] grades = {"A", "A-", "B+", "B", "B-", "C+", "C", "D", "E"};
+        Map<String, Integer> gradeCount = new LinkedHashMap<>();
+        for (String g : grades) gradeCount.put(g, 0);
+
+        for (Nilai n : nilaiList) {
+            String grade = n.getNilai();
+            if (gradeCount.containsKey(grade)) {
+                gradeCount.put(grade, gradeCount.get(grade) + 1);
+            }
+        }
+
+        ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
+        for (Map.Entry<String, Integer> entry : gradeCount.entrySet()) {
+            if (entry.getValue() > 0) {
+                pieData.add(new PieChart.Data(
+                        entry.getKey() + " (" + entry.getValue() + ")",
+                        entry.getValue()
+                ));
+            }
+        }
+        piechart.setData(pieData);
     }
 }
