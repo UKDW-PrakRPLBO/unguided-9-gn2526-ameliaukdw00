@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="adca8076-454b-4e16-9fe0-24d1ffcd862e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/ukdw/rplbo/soal_ug_javafx/AppController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ukdw/rplbo/soal_ug_javafx/AppController.java" afterDir="false" />
-    </list>
+    <list default="true" id="adca8076-454b-4e16-9fe0-24d1ffcd862e" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -130,7 +128,7 @@
       <option name="presentableId" value="Default" />
       <updated>1776996693584</updated>
       <workItem from="1776996768575" duration="4000" />
-      <workItem from="1777447084446" duration="1199000" />
+      <workItem from="1777447084446" duration="1378000" />
     </task>
     <servers />
   </component>
